@@ -1,0 +1,418 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#f0f4ff;color:#1a1d2e;min-height:100vh}
+:root{
+  --blue:#2563eb;--blue-light:#dbeafe;--blue-mid:#93c5fd;
+  --green:#16a34a;--green-light:#dcfce7;
+  --purple:#7c3aed;--purple-light:#ede9fe;
+  --amber:#d97706;--amber-light:#fef3c7;
+  --red:#dc2626;--red-light:#fee2e2;
+  --gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;--gray-600:#475569;--gray-700:#334155;--gray-900:#0f172a;
+  --radius:12px;--radius-lg:16px;--shadow:0 1px 3px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.05);
+}
+.app-wrap{max-width:980px;margin:0 auto;padding:28px 16px 48px}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:38px;height:38px;background:var(--blue);border-radius:10px;display:flex;align-items:center;justify-content:center}
+.brand-icon svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.brand-name{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:var(--gray-900);letter-spacing:-.3px}
+.brand-sub{font-size:11px;color:var(--gray-600);margin-top:1px}
+.controls-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.toggle-group{display:flex;background:#fff;border-radius:8px;border:1px solid var(--gray-200);overflow:hidden}
+.toggle-btn{border:none;background:transparent;padding:6px 14px;font-size:13px;font-weight:500;cursor:pointer;color:var(--gray-600);transition:all .2s}
+.toggle-btn.active{background:var(--blue);color:#fff}
+.ctrl-btn{border:none;padding:7px 16px;font-size:13px;font-weight:500;border-radius:8px;cursor:pointer;transition:all .2s}
+.btn-reset{background:#fff;color:var(--gray-700);border:1px solid var(--gray-200)}
+.btn-reset:hover{background:var(--gray-100)}
+.btn-export{background:var(--blue);color:#fff;border:none}
+.btn-export:hover{background:#1d4ed8}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr}}
+.card{background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow);border:1px solid var(--gray-200);padding:20px}
+.card-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--gray-100)}
+.card-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.icon-storage{background:var(--blue-light)}
+.icon-compute{background:var(--purple-light)}
+.icon-transfer{background:var(--amber-light)}
+.card-icon svg{width:18px;height:18px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.icon-storage svg{stroke:var(--blue)}
+.icon-compute svg{stroke:var(--purple)}
+.icon-transfer svg{stroke:var(--amber)}
+.card-title{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;color:var(--gray-900)}
+.card-cost{margin-left:auto;font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:var(--blue)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.field-row:last-child{margin-bottom:0}
+.field-row.triple{grid-template-columns:repeat(3,1fr)}
+@media(max-width:480px){.field-row,.field-row.triple{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:5px}
+label{font-size:11.5px;font-weight:500;color:var(--gray-600);text-transform:uppercase;letter-spacing:.4px}
+input[type=number]{border:1.5px solid var(--gray-200);border-radius:8px;padding:8px 12px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--gray-900);background:#fff;transition:border .15s,box-shadow .15s;-moz-appearance:textfield;appearance:textfield;width:100%}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+input[type=number]:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+input[type=number].invalid{border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,.1)}
+.preset-row{display:flex;gap:7px;margin-bottom:16px;flex-wrap:wrap}
+.preset-chip{border:1.5px solid var(--gray-200);background:#fff;border-radius:20px;padding:4px 13px;font-size:12px;font-weight:500;cursor:pointer;color:var(--gray-700);transition:all .2s}
+.preset-chip:hover{border-color:var(--blue);color:var(--blue)}
+.preset-chip.active{border-color:var(--blue);background:var(--blue-light);color:var(--blue)}
+.summary-card{background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 50%,#3b82f6 100%);border-radius:var(--radius-lg);padding:24px;color:#fff;margin-bottom:16px}
+.summary-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.summary-label{font-size:12px;font-weight:500;opacity:.8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.summary-total{font-family:'Space Grotesk',sans-serif;font-size:40px;font-weight:700;letter-spacing:-1px;line-height:1}
+.summary-per{font-size:12px;opacity:.7;margin-top:3px}
+.period-toggle{display:flex;background:rgba(255,255,255,.15);border-radius:8px;overflow:hidden}
+.period-btn{border:none;background:transparent;color:rgba(255,255,255,.8);padding:6px 14px;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s}
+.period-btn.active{background:rgba(255,255,255,.25);color:#fff}
+.breakdown-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+.breakdown-row:last-child{border-bottom:none}
+.breakdown-label{font-size:13px;opacity:.85;display:flex;align-items:center;gap:8px}
+.breakdown-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.breakdown-pct{font-size:12px;opacity:.6;margin-left:4px}
+.breakdown-val{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600}
+.chart-card{background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow);border:1px solid var(--gray-200);padding:20px}
+.chart-wrap{position:relative;height:200px;margin-top:10px}
+.stat-mini{background:var(--gray-50);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--gray-100)}
+.stat-mini-label{font-size:11px;color:var(--gray-600);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+.stat-mini-val{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:var(--gray-900)}
+.stat-mini-sub{font-size:11px;color:var(--gray-600);margin-top:2px}
+.bar-track{height:8px;background:var(--gray-100);border-radius:4px;overflow:hidden;margin-top:6px}
+.bar-fill{height:100%;border-radius:4px;transition:width .5s ease}
+.zero-state{text-align:center;padding:20px 10px;color:var(--gray-600);font-size:13px}
+.badge-annual{background:var(--green-light);color:var(--green);font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.section-title{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;color:var(--gray-700);text-transform:uppercase;letter-spacing:.5px}
+</style>
+</head>
+<body>
+<div class="app-wrap">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">CloudCost</div>
+        <div class="brand-sub">Infrastructure Cost Calculator</div>
+      </div>
+    </div>
+    <div class="controls-row">
+      <div class="toggle-group">
+        <button class="toggle-btn active" id="btnUSD" onclick="setCurrency('$')">$ USD</button>
+        <button class="toggle-btn" id="btnINR" onclick="setCurrency('₹')">₹ INR</button>
+      </div>
+      <button class="ctrl-btn btn-reset" onclick="resetAll()">↺ Reset</button>
+      <button class="ctrl-btn btn-export" onclick="exportData()">↓ Export</button>
+    </div>
+  </div>
+
+  <div class="preset-row">
+    <span style="font-size:12px;color:var(--gray-600);line-height:28px;margin-right:2px">Presets:</span>
+    <button class="preset-chip" onclick="applyPreset('aws')" id="preset-aws">AWS</button>
+    <button class="preset-chip" onclick="applyPreset('azure')" id="preset-azure">Azure</button>
+    <button class="preset-chip" onclick="applyPreset('gcp')" id="preset-gcp">GCP</button>
+    <button class="preset-chip" onclick="applyPreset('custom')" id="preset-custom">Custom</button>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon icon-storage">
+          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4.03 3-9 3S3 13.66 3 12"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg>
+        </div>
+        <div>
+          <div class="card-title">Storage</div>
+        </div>
+        <div class="card-cost" id="storeCostDisplay">$0.00</div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Storage (GB)</label>
+          <input type="number" id="storeGB" value="100" min="0" placeholder="e.g. 500" oninput="calc()"/>
+        </div>
+        <div class="field">
+          <label>Cost / GB</label>
+          <input type="number" id="storeCPG" value="0.023" min="0" step="0.001" oninput="calc()"/>
+        </div>
+      </div>
+      <div class="bar-track"><div class="bar-fill" id="storeBar" style="background:var(--blue);width:0%"></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon icon-compute">
+          <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <div>
+          <div class="card-title">Compute</div>
+        </div>
+        <div class="card-cost" id="compCostDisplay">$0.00</div>
+      </div>
+      <div class="field-row triple">
+        <div class="field">
+          <label>Instances</label>
+          <input type="number" id="compInst" value="2" min="0" oninput="calc()"/>
+        </div>
+        <div class="field">
+          <label>Hours / mo</label>
+          <input type="number" id="compHrs" value="720" min="0" oninput="calc()"/>
+        </div>
+        <div class="field">
+          <label>Cost / hr</label>
+          <input type="number" id="compCPH" value="0.048" min="0" step="0.001" oninput="calc()"/>
+        </div>
+      </div>
+      <div class="bar-track"><div class="bar-fill" id="compBar" style="background:var(--purple);width:0%"></div></div>
+    </div>
+
+    <div class="card" style="grid-column:1/-1">
+      <div class="card-header">
+        <div class="card-icon icon-transfer">
+          <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+        </div>
+        <div>
+          <div class="card-title">Data Transfer</div>
+        </div>
+        <div class="card-cost" id="xferCostDisplay">$0.00</div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Transfer (GB)</label>
+          <input type="number" id="xferGB" value="50" min="0" oninput="calc()"/>
+        </div>
+        <div class="field">
+          <label>Cost / GB</label>
+          <input type="number" id="xferCPG" value="0.09" min="0" step="0.001" oninput="calc()"/>
+        </div>
+      </div>
+      <div class="bar-track"><div class="bar-fill" id="xferBar" style="background:var(--amber);width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="summary-card" id="summaryCard">
+    <div class="summary-top">
+      <div>
+        <div class="summary-label">Total Estimated Cost</div>
+        <div class="summary-total" id="totalDisplay">$0.00</div>
+        <div class="summary-per" id="perLabel">per month</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+        <div class="period-toggle">
+          <button class="period-btn active" id="btnMonthly" onclick="setPeriod('monthly')">Monthly</button>
+          <button class="period-btn" id="btnAnnual" onclick="setPeriod('annual')">Annual</button>
+        </div>
+        <span class="badge-annual" id="savingsBadge" style="display:none">12× monthly</span>
+      </div>
+    </div>
+    <div id="breakdownRows"></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="section-head">
+        <span class="section-title">Cost Distribution</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="pieChart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-head">
+        <span class="section-title">Monthly Breakdown</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="barChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-top:16px">
+    <div class="stat-mini">
+      <div class="stat-mini-label">Cost per GB stored</div>
+      <div class="stat-mini-val" id="statCPG">—</div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-label">Cost per instance</div>
+      <div class="stat-mini-val" id="statCPI">—</div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-label">Transfer efficiency</div>
+      <div class="stat-mini-val" id="statTrans">—</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currency='$';
+let period='monthly';
+let activePreset=null;
+let pieChart=null,barChart=null;
+
+const presets={
+  aws:{storeCPG:0.023,compCPH:0.0464,xferCPG:0.09},
+  azure:{storeCPG:0.0184,compCPH:0.052,xferCPG:0.087},
+  gcp:{storeCPG:0.02,compCPH:0.044,xferCPG:0.08},
+  custom:{storeCPG:0.01,compCPH:0.03,xferCPG:0.05}
+};
+
+function fmt(v){
+  if(currency==='₹')return '₹'+(v*83).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+  return '$'+v.toFixed(2);
+}
+
+function g(id){return document.getElementById(id);}
+function gv(id){return parseFloat(g(id).value)||0;}
+
+function calc(){
+  const storeGB=gv('storeGB'),storeCPG=gv('storeCPG');
+  const compInst=gv('compInst'),compHrs=gv('compHrs'),compCPH=gv('compCPH');
+  const xferGB=gv('xferGB'),xferCPG=gv('xferCPG');
+
+  // Validate
+  ['storeGB','storeCPG','compInst','compHrs','compCPH','xferGB','xferCPG'].forEach(id=>{
+    const el=g(id);
+    el.classList.toggle('invalid',parseFloat(el.value)<0||el.value==='');
+  });
+
+  let storeCost=storeGB*storeCPG;
+  let compCost=compInst*compHrs*compCPH;
+  let xferCost=xferGB*xferCPG;
+  let total=storeCost+compCost+xferCost;
+
+  if(period==='annual'){storeCost*=12;compCost*=12;xferCost*=12;total*=12;}
+
+  const mult=period==='annual'?12:1;
+
+  g('storeCostDisplay').textContent=fmt(storeCost);
+  g('compCostDisplay').textContent=fmt(compCost);
+  g('xferCostDisplay').textContent=fmt(xferCost);
+  g('totalDisplay').textContent=fmt(total);
+  g('perLabel').textContent=period==='annual'?'per year':'per month';
+
+  const pctS=total>0?Math.round(storeCost/total*100):0;
+  const pctC=total>0?Math.round(compCost/total*100):0;
+  const pctX=total>0?Math.round(xferCost/total*100):0;
+
+  g('storeBar').style.width=pctS+'%';
+  g('compBar').style.width=pctC+'%';
+  g('xferBar').style.width=pctX+'%';
+
+  g('breakdownRows').innerHTML=`
+    <div class="breakdown-row">
+      <span class="breakdown-label"><span class="breakdown-dot" style="background:#93c5fd"></span>Storage<span class="breakdown-pct">${pctS}%</span></span>
+      <span class="breakdown-val">${fmt(storeCost)}</span>
+    </div>
+    <div class="breakdown-row">
+      <span class="breakdown-label"><span class="breakdown-dot" style="background:#c4b5fd"></span>Compute<span class="breakdown-pct">${pctC}%</span></span>
+      <span class="breakdown-val">${fmt(compCost)}</span>
+    </div>
+    <div class="breakdown-row">
+      <span class="breakdown-label"><span class="breakdown-dot" style="background:#fcd34d"></span>Data Transfer<span class="breakdown-pct">${pctX}%</span></span>
+      <span class="breakdown-val">${fmt(xferCost)}</span>
+    </div>
+  `;
+
+  // Stats
+  const monthlyStore=storeGB*storeCPG;
+  const monthlyComp=compInst*compHrs*compCPH;
+  const monthlyXfer=xferGB*xferCPG;
+  const monthlyTotal=monthlyStore+monthlyComp+monthlyXfer;
+
+  g('statCPG').textContent=storeGB>0?fmt(monthlyStore/storeGB)+'/GB':'—';
+  g('statCPI').textContent=compInst>0?fmt(monthlyComp/compInst)+'/inst':'—';
+  g('statTrans').textContent=monthlyTotal>0?pctX+'% of total':'—';
+
+  updateCharts(storeCost,compCost,xferCost);
+}
+
+function updateCharts(s,c,x){
+  const labels=['Storage','Compute','Data Transfer'];
+  const data=[+s.toFixed(2),+c.toFixed(2),+x.toFixed(2)];
+  const colors=['#3b82f6','#8b5cf6','#f59e0b'];
+  const bgColors=['rgba(59,130,246,.15)','rgba(139,92,246,.15)','rgba(245,158,11,.15)'];
+
+  if(!pieChart){
+    const ctx=g('pieChart').getContext('2d');
+    pieChart=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:0,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11,family:'DM Sans'},color:'#475569',boxWidth:10,padding:10}},tooltip:{callbacks:{label:({label,raw})=>`${label}: ${fmt(raw)}`}}},cutout:'60%'}});
+  }else{
+    pieChart.data.datasets[0].data=data;
+    pieChart.update('none');
+  }
+
+  if(!barChart){
+    const ctx=g('barChart').getContext('2d');
+    barChart=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data,backgroundColor:bgColors,borderColor:colors,borderWidth:1.5,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:({raw})=>fmt(raw)}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#94a3b8'}},y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{callback:v=>fmt(v),font:{size:10},color:'#94a3b8'}}}}});
+  }else{
+    barChart.data.datasets[0].data=data;
+    barChart.update('none');
+  }
+}
+
+function setCurrency(c){
+  currency=c;
+  g('btnUSD').classList.toggle('active',c==='$');
+  g('btnINR').classList.toggle('active',c==='₹');
+  calc();
+}
+
+function setPeriod(p){
+  period=p;
+  g('btnMonthly').classList.toggle('active',p==='monthly');
+  g('btnAnnual').classList.toggle('active',p==='annual');
+  g('savingsBadge').style.display=p==='annual'?'block':'none';
+  calc();
+}
+
+function applyPreset(name){
+  document.querySelectorAll('.preset-chip').forEach(b=>b.classList.remove('active'));
+  g('preset-'+name).classList.add('active');
+  activePreset=name;
+  const p=presets[name];
+  g('storeCPG').value=p.storeCPG;
+  g('compCPH').value=p.compCPH;
+  g('xferCPG').value=p.xferCPG;
+  calc();
+}
+
+function resetAll(){
+  ['storeGB','storeCPG','compInst','compHrs','compCPH','xferGB','xferCPG'].forEach(id=>g(id).classList.remove('invalid'));
+  g('storeGB').value=100;g('storeCPG').value=0.023;
+  g('compInst').value=2;g('compHrs').value=720;g('compCPH').value=0.048;
+  g('xferGB').value=50;g('xferCPG').value=0.09;
+  document.querySelectorAll('.preset-chip').forEach(b=>b.classList.remove('active'));
+  activePreset=null;
+  calc();
+}
+
+function exportData(){
+  const lines=[
+    'CloudCost — Infrastructure Cost Report',
+    '=======================================',
+    `Date: ${new Date().toLocaleDateString()}`,
+    `Currency: ${currency==='$'?'USD':'INR'}`,
+    `Period: ${period}`,
+    '',
+    `Storage:       ${g('storeCostDisplay').textContent}`,
+    `Compute:       ${g('compCostDisplay').textContent}`,
+    `Data Transfer: ${g('xferCostDisplay').textContent}`,
+    '--------------------------',
+    `TOTAL:         ${g('totalDisplay').textContent}`,
+  ];
+  const blob=new Blob([lines.join('\n')],{type:'text/plain'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='cloud-cost-report.txt';
+  a.click();
+}
+
+window.onload=()=>{applyPreset('aws');calc()};
+</script>
+</body>
+</html>
